@@ -1,0 +1,36 @@
+class MovieTicket{int id,s;double c;MovieTicket(int i,int s){id=i;this.s=s;c=(i==1?120:i==2?150:i==3?200:100);}double calc(){return s*c*1.02;}}
+class T{public static void main(String[]a){System.out.println(new MovieTicket(2,3).calc());}}
+
+class Student{int r,m;String n,g;void set(int r,String n,int m){this.r=r;this.n=n;this.m=m;g=m>=90?"A":m>=75?"B":m>=60?"C":"D";}void show(){System.out.println(r+" "+n+" "+m+" "+g);}}
+class T{public static void main(String[]a){Student s=new Student();s.set(1,"Alice",82);s.show();}}
+
+class Basic{void call(){System.out.println("Call");}void text(){System.out.println("Text");}}
+class Smart extends Basic{void photo(){System.out.println("Photo");}}
+class T{public static void main(String[]a){Smart s=new Smart();s.call();s.text();s.photo();}}
+
+class A{void eat(){System.out.println("Eat");}}
+class M extends A{void sleep(){System.out.println("Sleep");}}
+class D extends M{void bark(){System.out.println("Bark");}}
+class T{public static void main(String[]a){D d=new D();d.eat();d.sleep();d.bark();}}
+
+class V{String b;V(String b){this.b=b;}}
+class C extends V{int d;C(String b,int d){super(b);this.d=d;}void show(){System.out.println("Car "+b+" "+d);}}
+class B extends V{int cc;B(String b,int cc){super(b);this.cc=cc;}void show(){System.out.println("Bike "+b+" "+cc);}}
+class T{public static void main(String[]a){new C("Toyota",4).show();new B("Yamaha",150).show();}}
+
+class P{double x,y;P(double x,double y){this.x=x;this.y=y;}double d(){return Math.sqrt(x*x+y*y);}double d(P p){return Math.sqrt((x-p.x)*(x-p.x)+(y-p.y)*(y-p.y));}}
+class T{public static void main(String[]a){P p1=new P(3,4),p2=new P(6,8);System.out.println(p1.d());System.out.println(p1.d(p2));}}
+
+class U{double b;U(double b){this.b=b;}boolean pay(double a){if(b>=a){b-=a;return true;}return false;}}
+class PU extends U{double r;PU(double b){super(b);}boolean pay(double a){boolean ok=super.pay(a);if(ok)r+=a*0.1;return ok;}}
+class T{public static void main(String[]a){PU p=new PU(500);System.out.println(p.pay(200)+" "+p.b+" "+p.r);}}
+
+abstract class S{String n,r;int[] m=new int[4];S(String n){this.n=n;}void set(int i,int s){m[i]=s;}abstract void res();}
+class UG extends S{UG(String n){super(n);}void res(){int sum=0;for(int i:m)sum+=i;r=sum/4>=60?"Pass":"Fail";}}
+class PG extends S{PG(String n){super(n);}void res(){int sum=0;for(int i:m)sum+=i;r=sum/4>=70?"Pass":"Fail";}}
+class T{public static void main(String[]a){UG u=new UG("Phil");u.set(0,70);u.set(1,60);u.set(2,55);u.set(3,65);u.res();System.out.println(u.n+" "+u.r);}}
+
+interface Tax{double calc(double p);}
+class P implements Tax{String t;P(String t){this.t=t;}public double calc(double p){return p+(t.equals("CC")?p*0.12:p*0.1);}}
+class S implements Tax{String l;S(String l){this.l=l;}public double calc(double p){return l.equals("Canada")?p*0.15:p*0.1;}}
+class T{public static void main(String[]a){System.out.println(new P("CC").calc(100));System.out.println(new S("Canada").calc(100));}}
