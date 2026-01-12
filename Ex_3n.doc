@@ -1,0 +1,306 @@
+SQL> UPDATE instructor
+  2  SET salary = CASE
+  3                  WHEN salary > 100000 THEN salary * 1.03
+  4                  ELSE salary * 1.05
+  5               END;
+
+11 rows updated.
+
+SQL> UPDATE instructor
+  2  SET salary = salary * 1.10
+  3  WHERE dept_name = 'Comp. Sci.';
+
+3 rows updated.
+
+SQL> DELETE FROM course
+  2  WHERE course_id NOT IN (SELECT course_id FROM section);
+
+6 rows deleted.
+
+SQL> INSERT INTO instructor (ID, name, dept_name, salary)
+  2  SELECT ID, name, dept_name, 10000
+  3  FROM student
+  4  WHERE tot_cred > 100;
+
+2 rows created.
+
+SQL> UPDATE student S
+  2  SET tot_cred = (
+  3      SELECT SUM(credits)
+  4      FROM takes NATURAL JOIN course
+  5      WHERE takes.ID = S.ID AND takes.grade IS NOT NULL AND takes.grade <> 'F'
+  6  );
+
+11 rows updated.
+
+SQL> UPDATE employee
+  2  SET city = 'Newtown'
+  3  WHERE employee_name = 'Jones';
+UPDATE employee
+       *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+SQL> UPDATE works
+  2  SET salary = salary * 1.10
+  3  WHERE company_name = 'First Bank Corporation'
+  4  AND employee_name IN (SELECT manager_name FROM manages);
+UPDATE works
+       *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+SQL> CREATE TABLE employee (
+  2      employee_name VARCHAR(50) PRIMARY KEY,
+  3      street VARCHAR(100),
+  4      city VARCHAR(50)
+  5  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE company (
+  2      company_name VARCHAR(50) PRIMARY KEY,
+  3      city VARCHAR(50)
+  4  );
+CREATE TABLE company (
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> 
+SQL> CREATE TABLE works (
+  2      employee_name VARCHAR(50),
+  3      company_name VARCHAR(50),
+  4      salary DECIMAL(10, 2),
+  5      PRIMARY KEY (employee_name, company_name),
+  6      FOREIGN KEY (employee_name) REFERENCES employee(employee_name),
+  7      FOREIGN KEY (company_name) REFERENCES company(company_name)
+  8  );
+    FOREIGN KEY (company_name) REFERENCES company(company_name)
+                                                  *
+ERROR at line 7:
+ORA-00904: "COMPANY_NAME": invalid identifier 
+
+
+SQL> 
+SQL> CREATE TABLE manages (
+  2      employee_name VARCHAR(50) PRIMARY KEY,
+  3      manager_name VARCHAR(50),
+  4      FOREIGN KEY (employee_name) REFERENCES employee(employee_name)
+  5  );
+
+Table created.
+
+SQL> UPDATE employee
+  2  SET city = 'Newtown'
+  3  WHERE employee_name = 'Jones';
+
+0 rows updated.
+
+SQL> UPDATE works
+  2  SET salary = salary * 1.10
+  3  WHERE company_name = 'First Bank Corporation'
+  4  AND employee_name IN (SELECT manager_name FROM manages);
+UPDATE works
+       *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+SQL> UPDATE works
+  2  SET salary = CASE
+  3      WHEN salary * 1.10 > 100000 THEN salary * 1.03
+  4      ELSE salary * 1.10
+  5  END
+  6  WHERE company_name = 'First Bank Corporation'
+  7  AND employee_name IN (SELECT manager_name FROM manages);
+UPDATE works
+       *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+SQL> UPDATE student S
+  2  SET tot_cred = (
+  3      SELECT CASE
+  4          WHEN SUM(credits) IS NULL THEN 0
+  5          ELSE SUM(credits)
+  6      END
+  7      FROM takes NATURAL JOIN course
+  8      WHERE takes.ID = S.ID
+  9        AND takes.grade IS NOT NULL
+ 10        AND takes.grade <> 'F'
+ 11  );
+
+11 rows updated.
+
+SQL> CREATE TABLE employee (
+  2      employee_name VARCHAR(50) PRIMARY KEY,
+  3      street VARCHAR(100),
+  4      city VARCHAR(50)
+  5  );
+CREATE TABLE employee (
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> 
+SQL> CREATE TABLE company (
+  2      company_name VARCHAR(50) PRIMARY KEY,
+  3      city VARCHAR(50)
+  4  );
+CREATE TABLE company (
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> 
+SQL> CREATE TABLE works (
+  2      employee_name VARCHAR(50),
+  3      company_name VARCHAR(50),
+  4      salary DECIMAL(10, 2),
+  5      PRIMARY KEY (employee_name, company_name),
+  6      FOREIGN KEY (employee_name) REFERENCES employee(employee_name),
+  7      FOREIGN KEY (company_name) REFERENCES company(company_name)
+  8  );
+    FOREIGN KEY (company_name) REFERENCES company(company_name)
+                                                  *
+ERROR at line 7:
+ORA-00904: "COMPANY_NAME": invalid identifier 
+
+
+SQL> 
+SQL> CREATE TABLE manages (
+  2      employee_name VARCHAR(50) PRIMARY KEY,
+  3      manager_name VARCHAR(50),
+  4      FOREIGN KEY (employee_name) REFERENCES employee(employee_name)
+  5  );
+CREATE TABLE manages (
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> UPDATE employee
+  2  SET city = 'Newtown'
+  3  WHERE employee_name = 'Jones';
+
+0 rows updated.
+
+SQL> UPDATE works
+  2  SET salary = CASE
+  3      WHEN salary * 1.10 > 100000 THEN salary * 1.03
+  4      ELSE salary * 1.10
+  5  END
+  6  WHERE company_name = 'First Bank Corporation'
+  7  AND employee_name IN (SELECT manager_name FROM manages);
+UPDATE works
+       *
+ERROR at line 1:
+ORA-00942: table or view does not exist 
+
+
+SQL> CREATE TABLE works (
+  2      employee_name VARCHAR(50),
+  3      company_name VARCHAR(50),
+  4      salary DECIMAL(10, 2),
+  5      PRIMARY KEY (employee_name, company_name),
+  6      FOREIGN KEY (employee_name) REFERENCES employee(employee_name),
+  7      FOREIGN KEY (company_name) REFERENCES company(company_name)
+  8  );
+    FOREIGN KEY (company_name) REFERENCES company(company_name)
+                                                  *
+ERROR at line 7:
+ORA-00904: "COMPANY_NAME": invalid identifier 
+
+
+SQL> CREATE TABLE works (
+  2      employee_name VARCHAR(50),
+  3      company_name VARCHAR(50),
+  4      salary DECIMAL(10, 2),
+  5      PRIMARY KEY (employee_name, company_name),
+  6      FOREIGN KEY (employee_name) REFERENCES employee(employee_name),
+  7      FOREIGN KEY (company_name) REFERENCES company(company_name)
+  8  );
+    FOREIGN KEY (company_name) REFERENCES company(company_name)
+                                                  *
+ERROR at line 7:
+ORA-00904: "COMPANY_NAME": invalid identifier 
+
+
+SQL> CREATE TABLE company (
+  2      company_name VARCHAR(50) PRIMARY KEY,
+  3      city VARCHAR(50)
+  4  );
+CREATE TABLE company (
+             *
+ERROR at line 1:
+ORA-00955: name is already used by an existing object 
+
+
+SQL> CREATE TABLE company1 (
+  2      company_name VARCHAR(50) PRIMARY KEY,
+  3      city VARCHAR(50)
+  4  );
+
+Table created.
+
+SQL> CREATE TABLE works (
+  2      employee_name VARCHAR(50),
+  3      company_name VARCHAR(50),
+  4      salary DECIMAL(10, 2),
+  5      PRIMARY KEY (employee_name, company_name),
+  6      FOREIGN KEY (employee_name) REFERENCES employee(employee_name),
+  7      FOREIGN KEY (company_name) REFERENCES company1(company_name)
+  8  );
+
+Table created.
+
+SQL> UPDATE works
+  2  SET salary = CASE
+  3      WHEN salary * 1.10 > 100000 THEN salary * 1.03
+  4      ELSE salary * 1.10
+  5  END
+  6  WHERE company_name = 'First Bank Corporation'
+  7  AND employee_name IN (SELECT DISTINCT manager_name FROM manages);
+
+0 rows updated.
+
+SQL> UPDATE student S
+  2  SET tot_cred = (
+  3      SELECT NVL(SUM(credits), 0)
+  4      FROM takes NATURAL JOIN course
+  5      WHERE takes.ID = S.ID
+  6        AND takes.grade IS NOT NULL
+  7        AND takes.grade <> 'F'
+  8  );
+
+11 rows updated.
+
+SQL> desc company1
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ COMPANY_NAME                              NOT NULL VARCHAR2(50)
+ CITY                                               VARCHAR2(50)
+
+SQL> desc works
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ EMPLOYEE_NAME                             NOT NULL VARCHAR2(50)
+ COMPANY_NAME                              NOT NULL VARCHAR2(50)
+ SALARY                                             NUMBER(10,2)
+
+SQL> desc company
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ COMPANY                                            VARCHAR2(20)
+ BRANCH                                             VARCHAR2(20)
+ LOC                                                VARCHAR2(20)
+
+SQL> spool off
