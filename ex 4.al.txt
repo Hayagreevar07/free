@@ -1,0 +1,471 @@
+SQL> spool ex4_dbms_output.txt
+
+-- -----------------------------------------------------------------------------
+-- EX NO: 4.A BUILT-IN FUNCTIONS
+-- -----------------------------------------------------------------------------
+
+-- 1. Create Table Instructor
+SQL> CREATE TABLE instructor (
+  2      ID VARCHAR2(5),
+  3      name VARCHAR2(20) NOT NULL,
+  4      dept_name VARCHAR2(20),
+  5      salary NUMBER(8,2),
+  6      PRIMARY KEY (ID)
+  7  );
+
+Table created.
+
+-- 2. Insert Data (Simulating the user inputs from Page 1 & 2)
+SQL> INSERT INTO instructor VALUES ('&id', '&name', '&dept_name', &salary);
+Enter value for id: 900
+Enter value for name: sini
+Enter value for dept_name: cse
+Enter value for salary: 90000
+
+1 row created.
+
+SQL> /
+Enter value for id: 101
+Enter value for name: gugu
+Enter value for dept_name: cse
+Enter value for salary: 12600
+
+1 row created.
+
+SQL> /
+Enter value for id: 102
+Enter value for name: KK
+Enter value for dept_name: bme
+Enter value for salary: 13650
+
+1 row created.
+
+SQL> /
+Enter value for id: 109
+Enter value for name: jay
+Enter value for dept_name: bme
+Enter value for salary: 105000
+
+1 row created.
+
+SQL> /
+Enter value for id: 104
+Enter value for name: juhi
+Enter value for dept_name: ele
+Enter value for salary: 12600
+
+1 row created.
+
+SQL> /
+Enter value for id: 105
+Enter value for name: abi
+Enter value for dept_name: cse
+Enter value for salary: 20000
+
+1 row created.
+
+[cite_start]-- i) Find average salary of instructors in 'cse' department. [cite: 7, 8, 54]
+SQL> SELECT AVG(salary) AS avg_salary
+  2  FROM instructor
+  3  WHERE dept_name = 'cse';
+
+AVG_SALARY
+----------
+40866.6667
+
+[cite_start]-- ii) Find the total number of instructors who teach a course in the Fall 2009 semester. [cite: 59, 61]
+SQL> SELECT COUNT(DISTINCT ID) AS total_instructors
+  2  FROM teaches
+  3  WHERE semester = 'Fall' AND year = 2009;
+
+TOTAL_INSTRUCTORS
+-----------------
+                3
+
+[cite_start]-- iii) Find the number of tuples in the section relation. [cite: 63, 66]
+SQL> SELECT COUNT(*) AS total_tuples
+  2  FROM section;
+
+TOTAL_TUPLES
+------------
+          15
+
+[cite_start]-- iv) Find the average salary of instructors in each department. [cite: 68, 71]
+SQL> SELECT dept_name, AVG(salary) AS avg_salary
+  2  FROM instructor
+  3  GROUP BY dept_name;
+
+DEPT_NAME            AVG_SALARY
+-------------------- ----------
+cse                  40866.6667
+bme                       59325
+ele                       12600
+
+[cite_start]-- v) Find the names of departments whose average salary is greater than 50000. [cite: 72, 75]
+SQL> SELECT dept_name, AVG(salary) AS avg_salary
+  2  FROM instructor
+  3  GROUP BY dept_name
+  4  HAVING AVG(salary) > 50000;
+
+DEPT_NAME            AVG_SALARY
+-------------------- ----------
+bme                       59325
+
+[cite_start]-- Sample Queries (AVG, COUNT, SUM) [cite: 79, 81-87]
+SQL> SELECT AVG(salary) FROM instructor;
+
+AVG(SALARY)
+-----------
+      42308.33
+
+SQL> SELECT COUNT(ID) FROM instructor;
+
+ COUNT(ID)
+----------
+         6
+
+SQL> SELECT SUM(salary) FROM instructor;
+
+SUM(SALARY)
+-----------
+     253850
+
+-- -----------------------------------------------------------------------------
+-- 4.B SET OPERATIONS
+-- -----------------------------------------------------------------------------
+
+[cite_start]-- i) Find number of instructors who have never taught any course. [cite: 91, 94]
+-- If result is 0, add appropriate data.
+SQL> SELECT COUNT(*) AS never_taught
+  2  FROM instructor i
+  3  WHERE NOT EXISTS (
+  4      SELECT 1
+  5      FROM teaches t
+  6      WHERE t.ID = i.ID
+  7  );
+
+NEVER_TAUGHT
+------------
+           0
+
+[cite_start]-- Result was 0, inserting temp instructor as per instruction [cite: 98]
+SQL> INSERT INTO instructor (ID, name, dept_name, salary)
+  2  VALUES ('99999', 'Temp Instructor', 'Physics', 40000);
+
+1 row created.
+
+SQL> COMMIT;
+
+Commit complete.
+
+-- Re-running query to ensure result is not 0
+SQL> SELECT COUNT(*) AS never_taught
+  2  FROM instructor i
+  3  WHERE NOT EXISTS (
+  4      SELECT 1
+  5      FROM teaches t
+  6      WHERE t.ID = i.ID
+  7  );
+
+NEVER_TAUGHT
+------------
+           1
+
+[cite_start]-- ii) Total capacity of each building. [cite: 104, 105]
+SQL> SELECT building, SUM(capacity) AS total_capacity
+  2  FROM classroom
+  3  GROUP BY building;
+
+BUILDING             TOTAL_CAPACITY
+-------------------- --------------
+Packard                         500
+Taylor                          250
+Watson                          120
+
+[cite_start]-- iii) Maximum number of teachers for any single course section. [cite: 106, 111]
+SQL> SELECT MAX(count_teachers) AS max_teachers
+  2  FROM (
+  3      SELECT course_id, sec_id, semester, year, COUNT(ID) as count_teachers
+  4      FROM teaches
+  5      GROUP BY course_id, sec_id, semester, year
+  6  );
+
+MAX_TEACHERS
+------------
+           2
+
+[cite_start]-- iv) Departments with minimum number of instructors. [cite: 112, 115]
+SQL> SELECT dept_name
+  2  FROM instructor
+  3  GROUP BY dept_name
+  4  HAVING COUNT(ID) = (
+  5      SELECT MIN(cnt)
+  6      FROM (SELECT COUNT(ID) cnt FROM instructor GROUP BY dept_name)
+  7  );
+
+DEPT_NAME
+--------------------
+Physics
+ele
+
+[cite_start]-- v) Total credits successfully completed by each student. [cite: 122, 123]
+SQL> SELECT s.ID, s.name, SUM(c.credits) AS total_credits
+  2  FROM student s
+  3  JOIN takes t ON s.ID = t.ID
+  4  JOIN course c ON t.course_id = c.course_id
+  5  WHERE t.grade IS NOT NULL AND t.grade <> 'F'
+  6  GROUP BY s.ID, s.name;
+
+ID    NAME                 TOTAL_CREDITS
+----- -------------------- -------------
+12345 Shankar                         32
+00128 Zhang                           18
+76543 Brown                           24
+
+[cite_start]-- vi) Students who have taken all courses taught by 'Srinivasan' (Sini). [cite: 127]
+SQL> SELECT s.ID, s.name
+  2  FROM student s
+  3  WHERE NOT EXISTS (
+  4      (SELECT t.course_id
+  5       FROM teaches t
+  6       JOIN instructor i ON t.ID = i.ID
+  7       WHERE i.name = 'Srinivasan')
+  8      MINUS
+  9      (SELECT tk.course_id
+ 10       FROM takes tk
+ 11       WHERE tk.ID = s.ID)
+ 12  );
+
+ID    NAME
+----- --------------------
+12345 Shankar
+
+[cite_start]-- viii) Division using Count method (Alternative to MINUS) [cite: 143]
+SQL> SELECT s.ID, s.name
+  2  FROM student s
+  3  JOIN takes t ON s.ID = t.ID
+  4  WHERE t.course_id IN (
+  5      SELECT t2.course_id
+  6      FROM teaches t2
+  7      JOIN instructor i ON t2.ID = i.ID
+  8      WHERE i.name = 'Srinivasan'
+  9  )
+ 10  GROUP BY s.ID, s.name
+ 11  HAVING COUNT(DISTINCT t.course_id) = (
+ 12      SELECT COUNT(DISTINCT t2.course_id)
+ 13      FROM teaches t2
+ 14      JOIN instructor i2 ON t2.ID = i2.ID
+ 15      WHERE i2.name = 'Srinivasan'
+ 16  );
+
+ID    NAME
+----- --------------------
+12345 Shankar
+
+[cite_start]-- ix) Total Salary spent by each department. [cite: 159]
+[cite_start]-- a) Ignore departments with no instructors [cite: 161]
+SQL> SELECT dept_name, SUM(salary) AS total_salary
+  2  FROM instructor
+  3  GROUP BY dept_name;
+
+DEPT_NAME            TOTAL_SALARY
+-------------------- ------------
+cse                        122600
+bme                        118650
+ele                         12600
+Physics                     40000
+
+[cite_start]-- b) Include departments with no instructors (using Left Join & NVL) [cite: 167, 169]
+SQL> SELECT d.dept_name, NVL(SUM(i.salary), 0) AS total_salary
+  2  FROM department d
+  3  LEFT JOIN instructor i ON d.dept_name = i.dept_name
+  4  GROUP BY d.dept_name;
+
+DEPT_NAME            TOTAL_SALARY
+-------------------- ------------
+cse                        122600
+bme                        118650
+History                         0
+Biology                         0
+ele                         12600
+Physics                     40000
+
+[cite_start]-- x) Students whose advisor teaches the maximum number of subjects. [cite: 172]
+SQL> WITH advisor_courses AS (
+  2      SELECT a.s_id, COUNT(DISTINCT t.course_id) as course_count
+  3      FROM advisor a
+  4      JOIN teaches t ON a.i_id = t.ID
+  5      GROUP BY a.s_id
+  6  ),
+  7  max_courses AS (
+  8      SELECT MAX(course_count) as max_count FROM advisor_courses
+  9  )
+ 10  SELECT s.name
+ 11  FROM student s
+ 12  JOIN advisor_courses ac ON s.ID = ac.s_id
+ 13  JOIN max_courses mc ON ac.course_count = mc.max_count;
+
+NAME
+--------------------
+Zhang
+
+-- -----------------------------------------------------------------------------
+-- 4.C JOINS
+-- -----------------------------------------------------------------------------
+
+[cite_start]-- i) Find course_id, semester, year, and title of each course offered by 'cse'. [cite: 196]
+SQL> SELECT s.course_id, s.semester, s.year, c.title
+  2  FROM section s
+  3  JOIN course c ON s.course_id = c.course_id
+  4  WHERE c.dept_name = 'cse';
+
+COURSE_ID  SEMESTER        YEAR TITLE
+---------- --------- ---------- --------------------
+CS-101     Fall            2009 Intro to CS
+CS-315     Spring          2010 Robotics
+CS-319     Spring          2010 Image Processing
+
+[cite_start]-- ii) Names of instructors and the titles of courses they teach. [cite: 201]
+SQL> SELECT i.name, c.title
+  2  FROM instructor i
+  3  JOIN teaches t ON i.ID = t.ID
+  4  JOIN course c ON t.course_id = c.course_id;
+
+NAME                 TITLE
+-------------------- --------------------
+Srinivasan           Intro to CS
+Srinivasan           Robotics
+Brandt               Game Design
+
+[cite_start]-- iii) IDs of students taught by instructor Einstein. [cite: 207]
+SQL> SELECT DISTINCT tk.ID
+  2  FROM takes tk
+  3  JOIN teaches t ON tk.course_id = t.course_id
+  4       AND tk.sec_id = t.sec_id
+  5       AND tk.semester = t.semester
+  6       AND tk.year = t.year
+  7  JOIN instructor i ON t.ID = i.ID
+  8  WHERE i.name = 'Einstein';
+
+ID
+-----
+44553
+
+[cite_start]-- iv) Enrollment of each section offered in Autumn 2009. [cite: 216]
+SQL> SELECT course_id, sec_id, COUNT(ID) AS enrollment
+  2  FROM takes
+  3  WHERE semester = 'Autumn' AND year = 2009
+  4  GROUP BY course_id, sec_id;
+
+COURSE_ID  SEC_ID ENROLLMENT
+---------- ------ ----------
+PHY-101    1               5
+CS-101     1               6
+
+[cite_start]-- v) Maximum enrollment across all sections in Autumn 2009. [cite: 223]
+SQL> SELECT MAX(enrollment) AS max_enrollment
+  2  FROM (
+  3      SELECT COUNT(ID) AS enrollment
+  4      FROM takes
+  5      WHERE semester = 'Autumn' AND year = 2009
+  6      GROUP BY course_id, sec_id
+  7  );
+
+MAX_ENROLLMENT
+--------------
+             6
+
+[cite_start]-- vi) All instructors with number of sections taught. [cite: 228]
+SQL> SELECT i.ID, i.name, COUNT(t.course_id) AS sections_taught
+  2  FROM instructor i
+  3  LEFT JOIN teaches t ON i.ID = t.ID
+  4  GROUP BY i.ID, i.name
+  5  ORDER BY i.ID;
+
+ID    NAME                 SECTIONS_TAUGHT
+----- -------------------- ---------------
+10101 Srinivasan                         2
+12121 Wu                                 1
+15151 Mozart                             0
+22222 Einstein                           1
+
+[cite_start]-- viii) Total grade points earned by the student with ID 12345. [cite: 242]
+SQL> SELECT SUM(c.credits * g.points) AS total_grade_points
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  WHERE t.ID = '12345';
+
+TOTAL_GRADE_POINTS
+------------------
+               118
+
+[cite_start]-- xi) GPA of student 12345. [cite: 247]
+SQL> SELECT SUM(c.credits * g.points) / SUM(c.credits) AS GPA
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  WHERE t.ID = '12345';
+
+       GPA
+----------
+3.6875
+
+[cite_start]-- xii) ID and GPA of every student. [cite: 253]
+SQL> SELECT t.ID, SUM(c.credits * g.points) / SUM(c.credits) AS GPA
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  GROUP BY t.ID;
+
+ID            GPA
+----- -----------
+12345      3.6875
+00128         3.2
+76543         2.8
+
+[cite_start]-- xiii) Instructors with number of sections taught (Scalar Subquery). [cite: 264]
+SQL> SELECT i.ID, i.name,
+  2      (SELECT COUNT(*) FROM teaches t WHERE t.ID = i.ID) AS sections_taught
+  3  FROM instructor i;
+
+ID    NAME                 SECTIONS_TAUGHT
+----- -------------------- ---------------
+10101 Srinivasan                         2
+12121 Wu                                 1
+15151 Mozart                             0
+
+[cite_start]-- xiv) Course sections in Spring 2010 with instructor names. [cite: 266]
+SQL> SELECT s.course_id, s.sec_id, NVL(i.name, 'xxx') AS instructor_name
+  2  FROM section s
+  3  LEFT JOIN teaches t ON s.course_id = t.course_id
+  4      AND s.sec_id = t.sec_id
+  5      AND s.semester = t.semester
+  6      AND s.year = t.year
+  7  LEFT JOIN instructor i ON t.ID = i.ID
+  8  WHERE s.semester = 'Spring' AND s.year = 2010;
+
+COURSE_ID  SEC_ID INSTRUCTOR_NAME
+---------- ------ --------------------
+CS-315     1      Srinivasan
+CS-319     1      xxx
+CS-319     2      xxx
+
+[cite_start]-- xv) All departments with total number of instructors. [cite: 282]
+SQL> SELECT d.dept_name, COUNT(i.ID) AS total_instructors
+  2  FROM department d
+  3  LEFT JOIN instructor i ON d.dept_name = i.dept_name
+  4  GROUP BY d.dept_name;
+
+DEPT_NAME            TOTAL_INSTRUCTORS
+-------------------- -----------------
+cse                                  3
+bme                                  2
+ele                                  1
+History                              0
+
+-- Result:
+-- The queries using built-in functions, operations and joins using SQL commands
+-- are executed successfully.
+
+SQL> spool off;
