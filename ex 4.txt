@@ -1,0 +1,138 @@
+SQL> SELECT s.course_id, s.semester, s.year, c.title
+  2  FROM section s
+  3  JOIN course c ON s.course_id = c.course_id
+  4  WHERE c.dept_name = 'cse';
+
+COURSE_ID  SEMESTER        YEAR TITLE
+---------- --------- ---------- --------------------
+CS-101     Fall            2009 Intro to CS
+CS-315     Spring          2010 Robotics
+CS-319     Spring          2010 Image Processing
+
+SQL> SELECT i.name, c.title
+  2  FROM instructor i
+  3  JOIN teaches t ON i.ID = t.ID
+  4  JOIN course c ON t.course_id = c.course_id;
+
+NAME                 TITLE
+-------------------- --------------------
+Srinivasan           Intro to CS
+Srinivasan           Robotics
+Brandt               Game Design
+
+SQL> SELECT DISTINCT tk.ID
+  2  FROM takes tk
+  3  JOIN teaches t ON tk.course_id = t.course_id
+  4       AND tk.sec_id = t.sec_id
+  5       AND tk.semester = t.semester
+  6       AND tk.year = t.year
+  7  JOIN instructor i ON t.ID = i.ID
+  8  WHERE i.name = 'Einstein';
+
+ID
+-----
+44553
+
+SQL> SELECT course_id, sec_id, COUNT(ID) AS enrollment
+  2  FROM takes
+  3  WHERE semester = 'Autumn' AND year = 2009
+  4  GROUP BY course_id, sec_id;
+
+COURSE_ID  SEC_ID ENROLLMENT
+---------- ------ ----------
+PHY-101    1               5
+CS-101     1               6
+
+SQL> SELECT MAX(enrollment) AS max_enrollment
+  2  FROM (
+  3      SELECT COUNT(ID) AS enrollment
+  4      FROM takes
+  5      WHERE semester = 'Autumn' AND year = 2009
+  6      GROUP BY course_id, sec_id
+  7  );
+
+MAX_ENROLLMENT
+--------------
+             6
+
+SQL> SELECT i.ID, i.name, COUNT(t.course_id) AS sections_taught
+  2  FROM instructor i
+  3  LEFT JOIN teaches t ON i.ID = t.ID
+  4  GROUP BY i.ID, i.name
+  5  ORDER BY i.ID;
+
+ID    NAME                 SECTIONS_TAUGHT
+----- -------------------- ---------------
+10101 Srinivasan                         2
+12121 Wu                                 1
+15151 Mozart                             0
+22222 Einstein                           1
+
+SQL> SELECT SUM(c.credits * g.points) AS total_grade_points
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  WHERE t.ID = '12345';
+
+TOTAL_GRADE_POINTS
+------------------
+               118
+
+SQL> SELECT SUM(c.credits * g.points) / SUM(c.credits) AS GPA
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  WHERE t.ID = '12345';
+
+       GPA
+----------
+3.6875
+
+SQL> SELECT t.ID, SUM(c.credits * g.points) / SUM(c.credits) AS GPA
+  2  FROM takes t
+  3  JOIN course c ON t.course_id = c.course_id
+  4  JOIN grade_points g ON t.grade = g.grade
+  5  GROUP BY t.ID;
+
+ID            GPA
+----- -----------
+12345      3.6875
+00128         3.2
+76543         2.8
+
+SQL> SELECT i.ID, i.name,
+  2      (SELECT COUNT(*) FROM teaches t WHERE t.ID = i.ID) AS sections_taught
+  3  FROM instructor i;
+
+ID    NAME                 SECTIONS_TAUGHT
+----- -------------------- ---------------
+10101 Srinivasan                         2
+12121 Wu                                 1
+15151 Mozart                             0
+
+SQL> SELECT s.course_id, s.sec_id, NVL(i.name, 'xxx') AS instructor_name
+  2  FROM section s
+  3  LEFT JOIN teaches t ON s.course_id = t.course_id
+  4      AND s.sec_id = t.sec_id
+  5      AND s.semester = t.semester
+  6      AND s.year = t.year
+  7  LEFT JOIN instructor i ON t.ID = i.ID
+  8  WHERE s.semester = 'Spring' AND s.year = 2010;
+
+COURSE_ID  SEC_ID INSTRUCTOR_NAME
+---------- ------ --------------------
+CS-315     1      Srinivasan
+CS-319     1      xxx
+CS-319     2      xxx
+
+SQL> SELECT d.dept_name, COUNT(i.ID) AS total_instructors
+  2  FROM department d
+  3  LEFT JOIN instructor i ON d.dept_name = i.dept_name
+  4  GROUP BY d.dept_name;
+
+DEPT_NAME            TOTAL_INSTRUCTORS
+-------------------- -----------------
+cse                                  3
+bme                                  2
+ele                                  1
+History                              0
